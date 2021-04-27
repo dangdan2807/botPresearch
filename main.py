@@ -1,6 +1,7 @@
 import os
 import time
 import os.path
+import random
 from os import path
 from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
@@ -43,7 +44,18 @@ def guiTungTu(str, element):
     return
 
 
+def randomWord(dataList, size):
+    return ' '.join(random.choice(dataList) for i in range(size))
+
 def runAuto(account, dataList):
+    wordList = ["tình", "yêu", "màu", "hồng", "vĩnh", "cửu", "kiếp", "duyên", "không", "thành", "hướng", 
+            "dương", "kẹo", "bông", "gòn", "sài", "em", "băng", "qua", "đường", "quyền", "nhớ", "người", 
+            "hay", "ta", "nửa", "đời", "âu", "sầu", "hoa", "vàng", "tàn", "nay", "họ", "ai", "mất", "rồi",
+            "ngày", "phận", "lỡ", "làng", "ngàn", "thương", "về", "đâu", "dù", "anh", "có", "khóc", "lần", 
+            "nước", "chảy", "trôi", "bạn", "diệu", "kỳ", "mộng", "mơ", "bình", "yên", "nơi", "cùng", "kết",
+            "rồi", "đấy", "từ", "mà", "ra", "quay", "lại", "thanh", "niên", "thê", "lương", "hôm", "tôi",
+            "buồn", "chỉ", "là", "nhau", "khó", "vẽ", "nụ", "cười"]
+    
     option = webdriver.ChromeOptions()
     if path.exists(profile_dir) == False:
         os.rmdir(profile_dir)
@@ -55,14 +67,14 @@ def runAuto(account, dataList):
 
     print("run account: ", account[0])
     lastIndex = 30
+    lenDataList = len(dataList)
     for index in range(0, lastIndex):
-        lenDataList = len(dataList)
         text = ""
-        if index >= lenDataList:
-            text = index + "nội dung này không tồn tại"
+        if index >= lenDataList or not dataList[index]:
+            print("tạo từ ngẫu nhiên")
+            text = randomWord(wordList, 4)
         else:
-            text = dataList[index]
-
+            text = randomWord(dataList, 1)
         print("chạy lần ", (index + 1), ":", text)
         driver.get(url="https://www.presearch.org")
         time.sleep(3)
@@ -86,20 +98,23 @@ def main():
     dataPath = "data/text.txt"
     accList = docFile(accPath, 1)
     dataList = docFile(dataPath, 2)
+    
 
     if(accList == -1 or dataList == -1):
         exit
-    elif (not accList or not dataList):
+    elif not accList:
         if not accList:
             print("nhập tk, mk vào trong " + accPath)
             print("dạng: tk|ml")
         else:
-            print("danh sách từ khóa trong " + dataPath)
+            print("danh sách từ khóa trong " + dataPath + "rỗng")
+            print("bật tự động tạo từ ngẫu nhiên")
     else:
         lastIndex = len(accList)
         for index in range(0, lastIndex):
             runAuto(accList[index], dataList)
     return
+
 
 if __name__ == '__main__':
     main()
