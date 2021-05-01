@@ -8,15 +8,22 @@ from selenium.webdriver.common.keys import Keys
 from time import sleep
 
 # lấy path đến thư mục bot
-current_dir = os.getcwd()
-profile_dir = current_dir + "/profile"
-url_chrome = current_dir + "/chromedriver.exe"
+_currentDir = os.getcwd()
+_profileDir = _currentDir + "/profile"
+_chromePath = _currentDir + "/chromedriver.exe"
+_wordList = ["tình", "yêu", "màu", "hồng", "vĩnh", "cửu", "kiếp", "duyên", "không", "thành", "hướng",
+                "dương", "kẹo", "bông", "gòn", "sài", "em", "băng", "qua", "đường", "quyền", "nhớ", "người",
+                "hay", "ta", "nửa", "đời", "âu", "sầu", "hoa", "vàng", "tàn", "nay", "họ", "ai", "mất", "rồi",
+                "ngày", "phận", "lỡ", "làng", "ngàn", "thương", "về", "đâu", "dù", "anh", "có", "khóc", "lần",
+                "nước", "chảy", "trôi", "bạn", "diệu", "kỳ", "mộng", "mơ", "bình", "yên", "nơi", "cùng", "kết",
+                "rồi", "đấy", "từ", "mà", "ra", "quay", "lại", "thanh", "niên", "thê", "lương", "hôm", "tôi",
+                "buồn", "chỉ", "là", "nhau", "khó", "vẽ", "nụ", "cười", ""]
 
 
 def docFile(filePath, mode):
     if(path.exists(filePath) == False):
         f = open(filePath, "w+")
-        print(filePath + " rỗng")
+        print("tệp " + filePath + " rỗng")
         return -1
     tempList = []
     if mode == 1:
@@ -28,56 +35,68 @@ def docFile(filePath, mode):
     return tempList
 
 
-def login():
+def login(username, password):
     driver.get("https://www.presearch.org/login")
     time.sleep(5)
-    driver.find_element_by_name("email").send_keys(accList[0][0])
+
+    emailElement = driver.find_element_by_name("email")
+    guiTungTu(emailElement, username)
     time.sleep(2)
-    driver.find_element_by_name("password").send_keys(accList[0][1])
+    
+    passwordElement = driver.find_element_by_name("password")
+    guiTungTu(passwordElement, password)
     return
 
 
 def guiTungTu(str, element):
     for i in range(0, len(str)):
         element.send_keys(str[i])
-        sleep(0.1)
+        time.sleep(0.2)
     return
 
 
 def randomWord(dataList, size):
     return ' '.join(random.choice(dataList) for i in range(size))
 
+
+def demNguoc(i, message = "!"):
+    t = time.time()
+    for x in range(i, 0, -1):
+        sys.stdout.write(
+            "[%s] Waiting %s seconds %s\r "
+            % (time.strftime("%H:%M:%S", time.localtime(t)), x, message)
+        )
+        time.sleep(1)
+
+
 def runAuto(account, dataList):
-    wordList = ["tình", "yêu", "màu", "hồng", "vĩnh", "cửu", "kiếp", "duyên", "không", "thành", "hướng", 
-            "dương", "kẹo", "bông", "gòn", "sài", "em", "băng", "qua", "đường", "quyền", "nhớ", "người", 
-            "hay", "ta", "nửa", "đời", "âu", "sầu", "hoa", "vàng", "tàn", "nay", "họ", "ai", "mất", "rồi",
-            "ngày", "phận", "lỡ", "làng", "ngàn", "thương", "về", "đâu", "dù", "anh", "có", "khóc", "lần", 
-            "nước", "chảy", "trôi", "bạn", "diệu", "kỳ", "mộng", "mơ", "bình", "yên", "nơi", "cùng", "kết",
-            "rồi", "đấy", "từ", "mà", "ra", "quay", "lại", "thanh", "niên", "thê", "lương", "hôm", "tôi",
-            "buồn", "chỉ", "là", "nhau", "khó", "vẽ", "nụ", "cười"]
-    
+    username = account[0]
+    password = account[1]
     option = webdriver.ChromeOptions()
-    if path.exists(profile_dir) == False:
-        os.rmdir(profile_dir)
-    if path.exists(profile_dir) == True:
-        option.add_argument("user-data-dir=" + profile_dir + "/" + account[0])
+    if path.exists(_profileDir) == False:
+        os.rmdir(_profileDir)
+    if path.exists(_profileDir) == True:
+        option.add_argument("user-data-dir=" + _profileDir + "/" + username)
 
     driver = webdriver.Chrome(options=option)
     driver.set_window_size(375, 667)
 
-    print("run account: ", account[0])
+    print("run account: ", username)
+    # login(username, password)
+    # input("enter: ")
     lastIndex = 30
     lenDataList = len(dataList)
     for index in range(0, lastIndex):
         text = ""
         if index >= lenDataList or not dataList[index]:
             print("tạo từ ngẫu nhiên")
-            text = randomWord(wordList, 4)
+            text = randomWord(_wordList, 4)
         else:
             text = randomWord(dataList, 1)
+        
         print("chạy lần ", (index + 1), ":", text)
         driver.get(url="https://www.presearch.org")
-        time.sleep(3)
+        demNguoc(3)
 
         searchElement = driver.find_element_by_id('search')
         time.sleep(1)
@@ -86,9 +105,8 @@ def runAuto(account, dataList):
         time.sleep(1)
 
         searchElement.send_keys(Keys.ENTER)
-        time.sleep(5)
-    print("waiting close chrome to 5 second")
-    time.sleep(5)
+        demNguoc(5, "and continue")
+    demNguoc(5, "to close chrome")
     driver.close()
     return
 
@@ -98,17 +116,12 @@ def main():
     dataPath = "data/text.txt"
     accList = docFile(accPath, 1)
     dataList = docFile(dataPath, 2)
-    
 
     if(accList == -1 or dataList == -1):
         exit
     elif not accList:
-        if not accList:
-            print("nhập tk, mk vào trong " + accPath)
-            print("dạng: tk|ml")
-        else:
-            print("danh sách từ khóa trong " + dataPath + "rỗng")
-            print("bật tự động tạo từ ngẫu nhiên")
+        print("nhập tk, mk vào trong " + accPath)
+        print("dạng: tk|ml")
     else:
         lastIndex = len(accList)
         for index in range(0, lastIndex):
